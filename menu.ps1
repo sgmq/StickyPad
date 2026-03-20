@@ -35,27 +35,16 @@ $Script:List = @{
 
     # ターミナルを開いてコマンドを実行
     "ps"   = @([Cmd]::TERM, "powershell")
-    "ver"  = @([Cmd]::TERM, "ssh","192.168.1.1")
-    "gemini"   = @([Cmd]::TERM, "-d","C:\Users\kiw\home\novel","gemini")
-    "p"   = @([Cmd]::TERM, "-p","powershell")
-    "c"   = @([Cmd]::TERM, "-p","powershell", "-d","C:\Users\kiw\home\novel")
-    "q"   = @([Cmd]::TERM, "powershell", "pwd")
+    "local"  = @([Cmd]::TERM, "ssh","192.168.1.1")
 
     # 指定ディレクトリ配下の最新ファイルを開く
-    "log" = @([Cmd]::LATEST, 'C:\logs')
+    #"log" = @([Cmd]::LATEST, 'C:\logs')
 
     # サブメニュー
-    'prj' = @{
-       'src' = 'C:\prj\src'
-       'log' = 'C:\prj\log'
-    }
-
-    # ネスト（サブコマンド）
-    "git" = @{
-        "clone" = @([Cmd]::TERM, "git", "clone")
-        "pull"  = @([Cmd]::TERM, "git", "pull")
-        "push"  = @([Cmd]::TERM, "git", "push")
-    }
+    #'prj' = @{
+    #   'src' = 'C:\prj\src'
+    #   'log' = 'C:\prj\log'
+    #}
 }
 
 
@@ -65,13 +54,10 @@ $Script:List = @{
 # 書式:
 #   name = [offsetX, offsetY, path/base64, option]
 $Script:Images = [ordered]@{
-
-    "チラ" = @(
-        0,
+    "ねむるねこ" = @(
+        4,
         8,
-        "./chilla.png",
-        "Size=60"
-    )
+        "./cat.png"    )
 }
 
 
