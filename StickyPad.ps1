@@ -123,7 +123,7 @@ function launch($txt) {
             }
             ([Cmd]::OPEN) {
                 if ($opt[0] -like "*.ps1") {
-                    Start-Process -FilePath "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -ArgumentList @("-File", $opt[0])
+                    Start-Process -FilePath "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -ArgumentList $opt -NoNewWindow
                 }
                 else {
                     if ($keys.length -gt 0) {
@@ -227,7 +227,7 @@ function setPosition($hwnd) {
     }
 
     if ($Script:PositionY -ieq 'Bottom') {
-        $y = $y - $Script:picH + $Script:OffsetY
+        $y = $y - $Script:picH - $Script:OffsetY
     }
     else {
         $y = $y - $Script:picH + $Script:OffsetY
@@ -290,43 +290,42 @@ function loadImage($key, $size=40, $rotate='RotateNoneFlipNone') {
 
             $Script:ImageFile = $Script:Images[$key][2]
         }
-        elseif ($key -ne '' -and $Script:ImageFile -ne $key) {
+        else{
+            if ($key -ne '' ){ $Script:ImageFile = $key }
             $Script:OffsetX = -4
             $Script:OffsetY = 4
             $fs = New-Object System.IO.FileStream($Script:ImageFile, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read)
         }
-        else {
-            $fs = New-Object System.IO.FileStream($ImgSame, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read)
-            $Script:OffsetX = 10
-            $Script:OffsetY = -24
-        }
-
-        $img = [System.Drawing.Image]::FromStream($fs)
-        $fs.Dispose()
-
-        $gdp = $null
-        hideTextBox
-        try {
-            $img.RotateFlip($Script:Rotate)
-            $Form.Height = $Script:picH
-            $Form.Width  = [int]($Script:picH * ($img.Width / $img.Height))
-
-            $dst = New-Object System.Drawing.Bitmap($Form.Width, $Form.Height)
-            $gdp = [System.Drawing.Graphics]::FromImage($dst)
-            $gdp.InterpolationMode = $mode
-            $gdp.DrawImage($img, 0, 0, $Form.Width, $Form.Height)
-            if ($Pict.Image) { $Pict.Image.Dispose() }
-            $Pict.Image = $dst
-            $Pict.SizeMode = 'Normal'
-        }
-        finally {
-            $img.Dispose()
-            if ($gdp) { $gdp.Dispose() }
-        }
     }
     catch {
-        # 読み込み失敗時のフォールバック
+        $fs = New-Object System.IO.FileStream($ImgSame, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read)
+        $Script:OffsetX = 10
+        $Script:OffsetY = -24
     }
+
+    $img = [System.Drawing.Image]::FromStream($fs)
+    $fs.Dispose()
+
+    $gdp = $null
+    hideTextBox
+    try {
+        $img.RotateFlip($Script:Rotate)
+        $Form.Height = $Script:picH
+        $Form.Width  = [int]($Script:picH * ($img.Width / $img.Height))
+
+        $dst = New-Object System.Drawing.Bitmap($Form.Width, $Form.Height)
+        $gdp = [System.Drawing.Graphics]::FromImage($dst)
+        $gdp.InterpolationMode = $mode
+        $gdp.DrawImage($img, 0, 0, $Form.Width, $Form.Height)
+        if ($Pict.Image) { $Pict.Image.Dispose() }
+        $Pict.Image = $dst
+        $Pict.SizeMode = 'Normal'
+    }
+    finally {
+        $img.Dispose()
+        if ($gdp) { $gdp.Dispose() }
+    }
+}
 
     setPosition($Script:targethwnd)
 }
@@ -392,26 +391,26 @@ $TextBox.Add_KeyDown({
             elseif ($TextBox.Text -match ':(?<val>(top|bottom))') {
                 $Script:PositionY = $matches.val
             }
-            elseif ($TextBox.Text -match ':size-(?<num>[0-9]+)') {
+            elseif ($TextBox.Text -match ':size=(?<num>[0-9]+)') {
                 if ([int]$matches.num -ge 10) {
                     $Script:picH = [int]$matches.num
                     loadImage '' $Script:picH $Script:Rotate
                 }
             }
-            elseif ($TextBox.Text -match ':flip-?(?<xy>[xy|none])') {
+            elseif ($TextBox.Text -match ':flip=?(?<xy>[xyone])') {
                 $Script:Rotate = 'RotateNoneFlip' + $matches.xy.ToUpper()
                 loadImage '' $Script:picH $Script:Rotate
             }
-            elseif ($TextBox.Text -match ':off(set)?y-(?<num>[-0-9]+)') {
+            elseif ($TextBox.Text -match ':off(set)?y=(?<num>[-0-9]+)') {
                 $Script:OffsetY = [int]$matches.num
             }
-            elseif ($TextBox.Text -match ':off(set)?x-(?<num>[-0-9]+)') {
+            elseif ($TextBox.Text -match ':off(set)?x=(?<num>[-0-9]+)') {
                 $Script:OffsetX = [int]$matches.num
             }
-            elseif ($TextBox.Text -match ':opacity-(?<num>[.0-9]+)') {
+            elseif ($TextBox.Text -match ':opacity=(?<num>[.0-9]+)') {
                 $Script:Opacity = [double]$matches.num
             }
-            elseif ($TextBox.Text -match ':tbpos-(?<val>(below|inside))') {
+            elseif ($TextBox.Text -match ':tbpos=(?<val>(below|inside))') {
                 $Script:TextBoxPos = $matches.val
             }
 
@@ -429,7 +428,7 @@ $TextBox.Add_KeyDown({
             elseif ($TextBox.Text -match '!enable') {
                 [void][WinAPI]::EnableWindow($Script:targethwnd, 1)
             }
-            elseif ($TextBox.Text -match '!alpha-(?<num>[0-9]+)') {
+            elseif ($TextBox.Text -match '!alpha=(?<num>[0-9]+)') {
                 if ($matches.num -eq 255) {
                     $ws = [WinAPI]::GetWindowLong($Script:targethwnd, -20)
                     [WinAPI]::SetWindowLong($Script:targethwnd, -20, ($ws -band (-bnot 0x80000)))
@@ -473,8 +472,8 @@ if ($Script:Images.Count -gt 0) {
         $mi.Text = $i
         $mi.Add_Click({ loadImage $this.Text })
         [void]$menuImg.DropDownItems.Add($mi)
-        if ($Script:Images[$i][2] -like '<APPDATA>*') {
-            $Script:Images[$i][2] = $Script:Images[$i][2].Replace('<APPDATA>', $Env:APPDATA)
+        if ($Script:Images[$i][2] -like '%APPDATA%*') {
+            $Script:Images[$i][2] = $Script:Images[$i][2].Replace('%APPDATA%', $Env:APPDATA)
         }
     }
 }
@@ -554,7 +553,7 @@ $Script:FgDelegate = [WinEventDelegate]{
 
     $ws = [WinAPI]::GetWindowLong($hwnd, -16)
     # 0x10000000 WS_VISIBLE / 0x00C00000 WS_CAPTION
-    if ((($ws -band 0x10000000) -eq 0) -or (($ws -band 0x00C00000) -eq 0) -and (($ws -band 0x00040000) -eq 0)) {
+    if ((($ws -band 0x10000000) -eq 0) -or (($ws -band 0x00800000) -eq 0) -and (($ws -band 0x00040000) -eq 0)) {
         $Form.Opacity = 0.3
         return
     }
