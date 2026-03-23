@@ -14,7 +14,6 @@ enum Cmd {
 
 $Script:Tool = @{}
 
-$imgSame           = "$Env:APPDATA + '\Zoomvd\data\Emojis\1f988.svg'"   # [推定: パスはやや不鮮明]
 $picH              = 40
 $offsetX           = 8
 $offsetY           = 0
@@ -282,9 +281,9 @@ function loadImage($key, $size=40, $rotate='RotateNoneFlipNone') {
             }
 
             if ($Script:Images[$key][3] -ne $null -and $Script:Images[$key][3] -ne '') {
-                if ($Script:Images[$key][3] -imatch 'Rotate-(?<val>[a-zA-Z0-9]+)') { $Script:Rotate   = $matches.val }
-                if ($Script:Images[$key][3] -imatch 'Mode-(?<val>[a-zA-Z0-9]+)')   { $mode            = $matches.val }
-                if ($Script:Images[$key][3] -imatch 'Size-(?<val>[0-9]+)')         { $Script:picH     = [int]$matches.val }
+                if ($Script:Images[$key][3] -imatch 'Rotate=(?<val>[a-zA-Z0-9]+)') { $Script:Rotate   = $matches.val }
+                if ($Script:Images[$key][3] -imatch 'Mode=(?<val>[a-zA-Z0-9]+)')   { $mode            = $matches.val }
+                if ($Script:Images[$key][3] -imatch 'Size=(?<val>[0-9]+)')         { $Script:picH     = [int]$matches.val }
                 if ($Script:Images[$key][3] -imatch 'Bottom')                      { $Script:PositionY = 'Bottom' }
             }
 
@@ -298,9 +297,11 @@ function loadImage($key, $size=40, $rotate='RotateNoneFlipNone') {
         }
     }
     catch {
-        $fs = New-Object System.IO.FileStream($ImgSame, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read)
-        $Script:OffsetX = 10
-        $Script:OffsetY = -24
+        $png = [Convert]::FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYSURBVChTY2Bg+P8fPwYR/3HgoaUADwYA08OjXSelKtUAAAAASUVORK5CYII=")
+        $fs  = New-Object System.IO.MemoryStream($png, 0, $png.Length)
+        $Script:picH = 40
+        $Script:OffsetX = 0
+        $Script:OffsetY = 10
     }
 
     $img = [System.Drawing.Image]::FromStream($fs)
