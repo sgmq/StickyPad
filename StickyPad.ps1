@@ -325,7 +325,6 @@ function loadImage($key, $size=40, $rotate='RotateNoneFlipNone') {
         $img.Dispose()
         if ($gdp) { $gdp.Dispose() }
     }
-}
 
     setPosition($Script:targethwnd)
 }
